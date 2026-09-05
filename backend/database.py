@@ -9,11 +9,10 @@ load_dotenv()
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("db")
 
-NEON_DATABASE_URL = os.getenv(
-    "DATABASE_URL", 
-    "sqlite:///./iptv.db"
-)
-SQLITE_FALLBACK_URL = os.getenv("SQLITE_FALLBACK_URL", "sqlite:///./iptv.db")
+DB_PATH = os.path.join(os.path.dirname(os.path.dirname(__file__)), "iptv.db")
+DATABASE_URL = f"sqlite:///{DB_PATH}"
+NEON_DATABASE_URL = f"sqlite:///{DB_PATH}"
+SQLITE_FALLBACK_URL = f"sqlite:///{DB_PATH}"
 
 engine = None
 SessionLocal = None
@@ -24,23 +23,14 @@ def get_engine():
         return engine
 
     try:
-        logger.info("Attempting connection to primary PostgreSQL database...")
-        temp_engine = create_engine(
-            NEON_DATABASE_URL,
-            pool_pre_ping=True,
-            pool_recycle=300,
-            connect_args={"connect_timeout": 10} if "postgresql" in NEON_DATABASE_URL else {}
-        )
-        with temp_engine.connect() as conn:
-            conn.execute(text("SELECT 1"))
-        logger.info("Successfully connected to PostgreSQL database!")
-        engine = temp_engine
-    except Exception as e:
-        logger.warning(f"Failed to connect to primary database ({e}). Falling back to SQLite database...")
+        logger.info(f"Connecting to primary SQLite database at {DB_PATH}...")
         engine = create_engine(
-            SQLITE_FALLBACK_URL,
+            f"sqlite:///{DB_PATH}",
             connect_args={"check_same_thread": False}
         )
+    except Exception as e:
+        logger.warning(f"Error connecting to database: {e}")
+        engine = create_engine(f"sqlite:///{DB_PATH}", connect_args={"check_same_thread": False})
     
     SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     return engine

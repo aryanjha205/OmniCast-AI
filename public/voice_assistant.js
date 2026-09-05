@@ -21,6 +21,27 @@ class AryanVoiceAssistant {
     this.initVoices();
   }
 
+  setLanguage(langCode) {
+    const langMap = {
+      EN: 'en-US',
+      ES: 'es-ES',
+      FR: 'fr-FR',
+      DE: 'de-DE',
+      HI: 'hi-IN',
+      AR: 'ar-SA'
+    };
+    const speechLang = langMap[langCode] || 'en-US';
+    if (this.recognition) {
+      this.recognition.lang = speechLang;
+    }
+    if (this.synthesis) {
+      const voices = this.synthesis.getVoices();
+      const prefix = speechLang.split('-')[0];
+      this.selectedVoice = voices.find(v => v.lang.startsWith(prefix)) || this.selectedVoice;
+    }
+    console.log(`[Aryan AI] Voice language set to ${speechLang}`);
+  }
+
   initVoices() {
     if (!this.synthesis) return;
     const loadVoices = () => {
@@ -304,8 +325,20 @@ class AryanVoiceAssistant {
     }
 
     if (cmd.includes('show favorites') || cmd.includes('my list') || cmd.includes('my favorites')) {
-      window.appVoiceControls.showFavorites();
-      this.speak('Displaying your favorite channels.');
+      window.appVoiceControls.switchTab('mylist');
+      this.speak('Displaying your favorite channels in My List.');
+      return;
+    }
+
+    if (cmd.includes('show countries') || cmd.includes('browse countries')) {
+      window.appVoiceControls.switchTab('countries');
+      this.speak('Displaying channels by country.');
+      return;
+    }
+
+    if (cmd.includes('show live tv') || cmd.includes('open live tv')) {
+      window.appVoiceControls.switchTab('livetv');
+      this.speak('Opening Live TV directory.');
       return;
     }
 
@@ -316,9 +349,9 @@ class AryanVoiceAssistant {
     }
 
     // 4. NAVIGATION & THEMES
-    if (cmd.includes('go home') || cmd.includes('show all channels') || cmd.includes('reset filters')) {
-      window.appVoiceControls.filterCategory('ALL');
-      this.speak('Returned to home section with all live channels.');
+    if (cmd.includes('go home') || cmd.includes('show home') || cmd.includes('show all channels') || cmd.includes('reset filters')) {
+      window.appVoiceControls.switchTab('home');
+      this.speak('Returned to home section.');
       return;
     }
 

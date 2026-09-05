@@ -38,8 +38,7 @@ app.add_middleware(
 def on_startup():
     try:
         seed_database()
-        # Optionally sync initial third party API channels
-        sync_third_party_apis()
+        print("FastAPI startup complete. Database ready!")
     except Exception as e:
         print(f"Startup notice: {e}")
 
@@ -78,7 +77,7 @@ def get_channels(
     language: Optional[str] = Query(None, description="Filter by language"),
     hd: Optional[bool] = Query(None, description="Filter HD channels"),
     featured: Optional[bool] = Query(None, description="Filter featured channels"),
-    limit: int = Query(100, ge=1, le=500),
+    limit: int = Query(20000, ge=1, le=50000),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db)
 ):
@@ -230,6 +229,18 @@ if os.path.exists(public_path):
     @app.get("/")
     def read_root():
         return FileResponse(os.path.join(public_path, "index.html"))
+
+    @app.get("/livetv")
+    def read_livetv():
+        return FileResponse(os.path.join(public_path, "livetv.html"))
+
+    @app.get("/countries")
+    def read_countries():
+        return FileResponse(os.path.join(public_path, "countries.html"))
+
+    @app.get("/mylist")
+    def read_mylist():
+        return FileResponse(os.path.join(public_path, "mylist.html"))
 
     @app.get("/{file_name:path}")
     def serve_frontend_files(file_name: str):

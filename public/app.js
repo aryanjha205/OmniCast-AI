@@ -18,8 +18,44 @@ let state = {
 // INITIALIZATION
 document.addEventListener('DOMContentLoaded', () => {
   initPWA();
-  fetchInitialData();
+  const page = document.body.getAttribute('data-page') || 'home';
+  fetchInitialData().then(() => {
+    if (page === 'livetv') {
+      filterCategory('Live TV');
+      const titleEl = document.getElementById('channelsSectionTitle');
+      if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-tv"></i> Live TV Stream Directory`;
+    } else if (page === 'mylist') {
+      showFavorites();
+    } else if (page === 'countries') {
+      const titleEl = document.getElementById('channelsSectionTitle');
+      if (titleEl) titleEl.innerHTML = `<i class="fa-solid fa-globe"></i> Browse Channels by Country`;
+    }
+  });
 });
+
+// MULTI-PAGE ROUTING CONTROLLER
+function switchTab(tabName, event) {
+  if (event && event.preventDefault) event.preventDefault();
+
+  const currentPage = document.body.getAttribute('data-page') || 'home';
+  
+  if (tabName === 'home' && currentPage !== 'home') {
+    window.location.href = '/index.html';
+    return;
+  }
+  if (tabName === 'livetv' && currentPage !== 'livetv') {
+    window.location.href = '/livetv.html';
+    return;
+  }
+  if (tabName === 'countries' && currentPage !== 'countries') {
+    window.location.href = '/countries.html';
+    return;
+  }
+  if (tabName === 'mylist' && currentPage !== 'mylist') {
+    window.location.href = '/mylist.html';
+    return;
+  }
+}
 
 // PWA SERVICE WORKER & INSTALL PROMPT
 function initPWA() {
@@ -64,7 +100,7 @@ async function fetchInitialData() {
 
 async function fetchChannels() {
   try {
-    let url = `/api/channels?limit=100`;
+    let url = `/api/channels?limit=20000`;
     if (state.searchQuery) url += `&q=${encodeURIComponent(state.searchQuery)}`;
     if (state.activeCountry !== 'ALL') url += `&country=${encodeURIComponent(state.activeCountry)}`;
     if (state.activeCategory !== 'ALL') url += `&category=${encodeURIComponent(state.activeCategory)}`;
@@ -120,12 +156,20 @@ async function fetchCategories() {
 // RENDERERS
 function renderHero(channel) {
   state.currentHeroChannel = channel;
-  document.getElementById('heroTitle').innerText = channel.name;
-  document.getElementById('heroLogo').src = channel.logo || 'https://img.icons8.com/neon/192/play.png';
-  document.getElementById('heroDesc').innerText = channel.epg_now || `${channel.name} Live Streaming HD.`;
-  document.getElementById('heroTagCat').innerText = channel.category || 'Live TV';
-  document.getElementById('heroTagCountry').innerText = channel.country || 'Global';
-  document.getElementById('heroBgOverlay').style.backgroundImage = `url('${channel.logo || 'https://img.icons8.com/neon/192/play.png'}')`;
+  const titleEl = document.getElementById('heroTitle');
+  if (!titleEl) return;
+  
+  titleEl.innerText = channel.name;
+  const logoEl = document.getElementById('heroLogo');
+  if (logoEl) logoEl.src = channel.logo || 'https://img.icons8.com/neon/192/play.png';
+  const descEl = document.getElementById('heroDesc');
+  if (descEl) descEl.innerText = channel.epg_now || `${channel.name} Live Streaming HD.`;
+  const catEl = document.getElementById('heroTagCat');
+  if (catEl) catEl.innerText = channel.category || 'Live TV';
+  const countryEl = document.getElementById('heroTagCountry');
+  if (countryEl) countryEl.innerText = channel.country || 'Global';
+  const bgEl = document.getElementById('heroBgOverlay');
+  if (bgEl) bgEl.style.backgroundImage = `url('${channel.logo || 'https://img.icons8.com/neon/192/play.png'}')`;
   
   const isFav = state.favorites.includes(channel.id);
   const heroFavIcon = document.getElementById('heroFavIcon');
@@ -136,6 +180,8 @@ function renderHero(channel) {
 
 function renderCountries(countries) {
   const container = document.getElementById('countriesContainer');
+  if (!container) return;
+  
   let html = `
     <div class="country-pill ${state.activeCountry === 'ALL' ? 'active' : ''}" onclick="filterCountry('ALL')">
       <span class="country-flag-icon">🌐</span>
@@ -156,8 +202,9 @@ function renderCountries(countries) {
 
 function renderCategories(categories) {
   const container = document.getElementById('categoriesContainer');
-  let html = '';
+  if (!container) return;
   
+  let html = '';
   const defaultCats = [
     { name: 'Live TV', icon: 'fa-tv' },
     { name: 'News', icon: 'fa-newspaper' },
@@ -185,6 +232,8 @@ function renderCategories(categories) {
 
 function renderChannels(channels) {
   const container = document.getElementById('channelsContainer');
+  if (!container) return;
+
   if (!channels || channels.length === 0) {
     container.innerHTML = `
       <div style="grid-column: 1 / -1; text-align: center; padding: 60px 20px;">
@@ -516,9 +565,96 @@ function toggleTheme() {
   showToast(`Switched to ${isDark ? 'Dark' : 'Light'} theme`);
 }
 
+// MULTI-LANGUAGE INTERNATIONALIZATION (i18n)
+const TRANSLATIONS = {
+  EN: {
+    home: "Home",
+    livetv: "Live TV",
+    countries: "Countries",
+    mylist: "My List",
+    search: "Search channels, news, sports...",
+    browse_categories: "Browse Categories",
+    live_channels: "Live TV Channels",
+    my_list_title: "My Favorite Channels"
+  },
+  ES: {
+    home: "Inicio",
+    livetv: "TV en Vivo",
+    countries: "Países",
+    mylist: "Mi Lista",
+    search: "Buscar canales, noticias, deportes...",
+    browse_categories: "Explorar Categorías",
+    live_channels: "Canales de TV en Vivo",
+    my_list_title: "Mis Canales Favoritos"
+  },
+  FR: {
+    home: "Accueil",
+    livetv: "TV en Direct",
+    countries: "Pays",
+    mylist: "Ma Liste",
+    search: "Rechercher des chaînes, actus, sports...",
+    browse_categories: "Parcourir les Catégories",
+    live_channels: "Chaînes TV en Direct",
+    my_list_title: "Mes Chaînes Préférées"
+  },
+  DE: {
+    home: "Startseite",
+    livetv: "Live-TV",
+    countries: "Länder",
+    mylist: "Meine Liste",
+    search: "Sender, Nachrichten, Sport suchen...",
+    browse_categories: "Kategorien durchsuchen",
+    live_channels: "Live-TV-Sender",
+    my_list_title: "Meine Lieblingssender"
+  },
+  HI: {
+    home: "होम",
+    livetv: "लाइव टीवी",
+    countries: "देश",
+    mylist: "मेरी सूची",
+    search: "चैनल, समाचार, खेल खोजें...",
+    browse_categories: "श्रेणियां देखें",
+    live_channels: "लाइव टीवी चैनल",
+    my_list_title: "मेरे पसंदीदा चैनल"
+  },
+  AR: {
+    home: "الرئيسية",
+    livetv: "البث المباشر",
+    countries: "الدول",
+    mylist: "قائمتي",
+    search: "ابحث عن القنوات، الأخبار، الرياضة...",
+    browse_categories: "تصفح الفئات",
+    live_channels: "قنوات التلفزيون المباشر",
+    my_list_title: "قنواتي المفضلة"
+  }
+};
+
 function handleLangChange(lang) {
-  showToast(`Language set to ${lang}`);
+  state.currentLang = lang;
+  localStorage.setItem('omnicast_lang', lang);
+  applyLanguage(lang);
+  showToast(`Language updated to ${lang}`);
 }
+
+function applyLanguage(lang) {
+  const t = TRANSLATIONS[lang] || TRANSLATIONS.EN;
+  
+  const langSelect = document.getElementById('langSelect');
+  if (langSelect) langSelect.value = lang;
+
+  const searchInput = document.getElementById('searchInput');
+  if (searchInput) searchInput.placeholder = t.search;
+
+  if (window.aryanAI && window.aryanAI.setLanguage) {
+    window.aryanAI.setLanguage(lang);
+  }
+}
+
+// Apply saved language on load
+document.addEventListener('DOMContentLoaded', () => {
+  const savedLang = localStorage.getItem('omnicast_lang') || 'EN';
+  applyLanguage(savedLang);
+});
 
 // ==========================================================================
 // ARYAN AI VOICE CONTROL APP INTERFACE
@@ -638,9 +774,12 @@ window.appVoiceControls = {
     scrollToSection('channels-section');
   },
 
+  switchTab: function(tabName) {
+    switchTab(tabName);
+  },
+
   showFavorites: function() {
-    showFavorites();
-    scrollToSection('channels-section');
+    switchTab('mylist');
   },
 
   addCurrentToFavorites: function() {

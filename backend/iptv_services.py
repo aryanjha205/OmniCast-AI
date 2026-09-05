@@ -4,14 +4,84 @@ import logging
 from typing import List, Dict
 from backend.models import Channel
 from backend.database import get_session
+from backend.m3u_parser import fetch_and_parse_m3u
 
 logger = logging.getLogger("iptv_services")
 
-IPTV_ORG_CHANNELS_API = os.getenv("IPTV_ORG_CHANNELS_API", "https://iptv-org.github.io/api/channels.json")
-IPTV_ORG_STREAMS_API = os.getenv("IPTV_ORG_STREAMS_API", "https://iptv-org.github.io/api/streams.json")
-FREE_IPTV_PLAYLIST_URL = os.getenv("FREE_IPTV_PLAYLIST_URL", "https://iptv-org.github.io/iptv/index.m3u")
+# High-reliability Working Public IPTV Playlists (Category-specific & Global)
+IPTV_CATEGORY_PLAYLISTS = {
+    "News": "https://iptv-org.github.io/iptv/categories/news.m3u",
+    "Sports": "https://iptv-org.github.io/iptv/categories/sports.m3u",
+    "Entertainment": "https://iptv-org.github.io/iptv/categories/entertainment.m3u",
+    "Movies": "https://iptv-org.github.io/iptv/categories/movies.m3u",
+    "Music": "https://iptv-org.github.io/iptv/categories/music.m3u",
+    "Kids": "https://iptv-org.github.io/iptv/categories/kids.m3u",
+    "Documentary": "https://iptv-org.github.io/iptv/categories/documentary.m3u",
+    "Lifestyle": "https://iptv-org.github.io/iptv/categories/lifestyle.m3u"
+}
 
-FALLBACK_EXTERNAL_CHANNELS = [
+# Guaranteed 24/7 Working Live Streams (Direct HLS feeds)
+RELIABLE_CURATED_STREAMS = [
+    {
+        "name": "France 24 English HD",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/France_24_logo.svg/512px-France_24_logo.svg.png",
+        "stream_url": "https://static.france24.com/live/F24_EN_LO_HLS/live_tv.m3u8",
+        "stream_type": "hls",
+        "country": "France",
+        "country_code": "FR",
+        "category": "News",
+        "language": "English",
+        "is_hd": True,
+        "is_featured": True,
+        "is_live": True,
+        "epg_now": "France 24 Live Headlines & Analysis",
+        "epg_next": "The Debate & World Focus"
+    },
+    {
+        "name": "Deutsche Welle EN HD",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Deutsche_Welle_symbol_2012.svg/512px-Deutsche_Welle_symbol_2012.svg.png",
+        "stream_url": "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8",
+        "stream_type": "hls",
+        "country": "Germany",
+        "country_code": "DE",
+        "category": "News",
+        "language": "English",
+        "is_hd": True,
+        "is_featured": True,
+        "is_live": True,
+        "epg_now": "DW News Live from Berlin",
+        "epg_next": "Conflict Zone & Tech Asia"
+    },
+    {
+        "name": "Red Bull TV HD",
+        "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/e/e8/Red_Bull_TV_logo.svg/512px-Red_Bull_TV_logo.svg.png",
+        "stream_url": "https://rbmn-live.akamaized.net/hls/live/591070/GEO_DASH/master.m3u8",
+        "stream_type": "hls",
+        "country": "Austria",
+        "country_code": "AT",
+        "category": "Sports",
+        "language": "English",
+        "is_hd": True,
+        "is_featured": True,
+        "is_live": True,
+        "epg_now": "Extreme X-Games & Downhill MTB",
+        "epg_next": "F1 Pit Stop Specials"
+    },
+    {
+        "name": "NASA TV Public HD",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/e/e5/NASA_logo.svg",
+        "stream_url": "https://ntv1.akamaized.net/hls/live/2014075/NASA-TV-Public/master.m3u8",
+        "stream_type": "hls",
+        "country": "USA",
+        "country_code": "US",
+        "category": "Documentary",
+        "language": "English",
+        "is_hd": True,
+        "is_featured": True,
+        "is_live": True,
+        "epg_now": "ISS Live Stream & Space Operations",
+        "epg_next": "Artemis Mission Updates"
+    },
     {
         "name": "Euronews World HD",
         "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Euronews_2016_logo.svg/512px-Euronews_2016_logo.svg.png",
@@ -24,97 +94,95 @@ FALLBACK_EXTERNAL_CHANNELS = [
         "is_hd": True,
         "is_featured": False,
         "is_live": True,
-        "epg_now": "Euronews Live News",
-        "epg_next": "Global Bulletin"
+        "epg_now": "Europe Live News Bulletin",
+        "epg_next": "No Comment & Climate Now"
     },
     {
-        "name": "Red Bull TV X-Games",
-        "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/e/e8/Red_Bull_TV_logo.svg/512px-Red_Bull_TV_logo.svg.png",
-        "stream_url": "https://rbmn-live.akamaized.net/hls/live/591070/GEO_DASH/master.m3u8",
+        "name": "Al Jazeera English",
+        "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/7/77/Al_Jazeera_English_logo.svg/512px-Al_Jazeera_English_logo.svg.png",
+        "stream_url": "https://live-hls-web-aje.getaj.net/AJE/01.m3u8",
         "stream_type": "hls",
-        "country": "Austria",
-        "country_code": "AT",
-        "category": "Sports",
+        "country": "Qatar",
+        "country_code": "QA",
+        "category": "News",
         "language": "English",
         "is_hd": True,
         "is_featured": False,
         "is_live": True,
-        "epg_now": "Extreme Surfing & Downhill MTB",
-        "epg_next": "F1 Pit Stop Specials"
+        "epg_now": "Al Jazeera Global News",
+        "epg_next": "Inside Story & Earthrise"
     }
 ]
 
-def fetch_from_iptv_org_api(limit: int = 30) -> List[Dict]:
+MASTER_INDEX_URL = "https://iptv-org.github.io/iptv/index.m3u"
+
+def fetch_from_iptv_org_api() -> List[Dict]:
     """
-    Fetches live streams and channel metadata from IPTV-org open API with immediate fallback
+    Fetches ALL active streams from master index.m3u and category playlists without limits
     """
+    fetched_channels = []
+    seen_urls = set()
+
+    # Always include curated guaranteed streams first
+    for ch in RELIABLE_CURATED_STREAMS:
+        if ch["stream_url"] not in seen_urls:
+            seen_urls.add(ch["stream_url"])
+            fetched_channels.append(ch)
+
+    # Fetch working channels across each category
+    for cat_name, playlist_url in IPTV_CATEGORY_PLAYLISTS.items():
+        try:
+            logger.info(f"Fetching IPTV playlist for {cat_name}: {playlist_url}")
+            channels = fetch_and_parse_m3u(playlist_url)
+            for c in channels:
+                stream_url = c.get("stream_url")
+                if stream_url and stream_url.startswith("http") and stream_url not in seen_urls:
+                    seen_urls.add(stream_url)
+                    c["category"] = cat_name
+                    c["is_hd"] = True
+                    c["is_live"] = True
+                    fetched_channels.append(c)
+        except Exception as e:
+            logger.warning(f"Could not load playlist for {cat_name}: {e}")
+
+    # Parse ALL channels from Master index.m3u
     try:
-        logger.info(f"Fetching third-party channels from IPTV-org API: {IPTV_ORG_CHANNELS_API}")
-        channels_resp = requests.get(IPTV_ORG_CHANNELS_API, timeout=3)
-        streams_resp = requests.get(IPTV_ORG_STREAMS_API, timeout=3)
-
-        if channels_resp.status_code != 200 or streams_resp.status_code != 200:
-            return FALLBACK_EXTERNAL_CHANNELS
-
-        channels_data = channels_resp.json()
-        streams_data = streams_resp.json()
-
-        stream_map = {}
-        for s in streams_data:
-            if s.get("channel") and s.get("url"):
-                stream_map[s["channel"]] = s["url"]
-
-        valid_channels = []
-        count = 0
-        for ch in channels_data:
-            ch_id = ch.get("id")
-            if not ch_id or ch_id not in stream_map:
-                continue
-
-            stream_url = stream_map[ch_id]
-            c_code = (ch.get("country") or "US").upper()
-            
-            item = {
-                "name": ch.get("name") or "Live Stream",
-                "logo": ch.get("logo") or "",
-                "stream_url": stream_url,
-                "stream_type": "hls",
-                "country": ch.get("country") or "Global",
-                "country_code": c_code,
-                "category": ch.get("categories", ["Live TV"])[0] if ch.get("categories") else "Live TV",
-                "language": ch.get("languages", ["English"])[0] if ch.get("languages") else "English",
-                "is_hd": True,
-                "is_featured": False,
-                "is_live": True,
-                "epg_now": f"Live Stream from {ch.get('name')}",
-                "epg_next": "Upcoming Broadcast"
-            }
-            valid_channels.append(item)
-            count += 1
-            if count >= limit:
-                break
-
-        return valid_channels if valid_channels else FALLBACK_EXTERNAL_CHANNELS
-
+        logger.info(f"Parsing ALL channels from IPTV-Org Master Index: {MASTER_INDEX_URL}")
+        master_channels = fetch_and_parse_m3u(MASTER_INDEX_URL)
+        for c in master_channels:
+            stream_url = c.get("stream_url")
+            if stream_url and (stream_url.startswith("http://") or stream_url.startswith("https://")) and stream_url not in seen_urls:
+                seen_urls.add(stream_url)
+                c["is_hd"] = True
+                c["is_live"] = True
+                fetched_channels.append(c)
     except Exception as e:
-        logger.warning(f"Using fallback external channels due to API timeout/error: {e}")
-        return FALLBACK_EXTERNAL_CHANNELS
+        logger.warning(f"Could not load master index: {e}")
 
-def fetch_from_pluto_samsung_api() -> List[Dict]:
-    return FALLBACK_EXTERNAL_CHANNELS
+    return fetched_channels
 
 def sync_third_party_apis() -> int:
+    """
+    Syncs ALL working channels into the database using fast bulk insertion
+    """
     db = get_session()
     added_count = 0
     try:
-        combined = fetch_from_iptv_org_api(limit=20)
-        for c in combined:
-            existing = db.query(Channel).filter(Channel.stream_url == c["stream_url"]).first()
-            if not existing:
-                ch_obj = Channel(**c)
-                db.add(ch_obj)
+        existing_urls = set(row[0] for row in db.query(Channel.stream_url).all())
+        channels = fetch_from_iptv_org_api()
+        
+        new_objects = []
+        for c in channels:
+            if c["stream_url"] not in existing_urls:
+                existing_urls.add(c["stream_url"])
+                new_objects.append(Channel(**c))
                 added_count += 1
-        db.commit()
+                
+        if new_objects:
+            db.bulk_save_objects(new_objects)
+            db.commit()
+            
+        logger.info(f"Synced {added_count} new channels to database.")
         return added_count
     except Exception as e:
         logger.error(f"Error syncing third party APIs: {e}")

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>OmniCast AI - Smart Hands-Free Global TV</title>
+  <title>OmniCast AI - Live TV Directory</title>
 
   <!-- PWA Meta Tags -->
   <meta name="theme-color" content="#39FF14">
@@ -22,7 +22,7 @@
 
   <link rel="stylesheet" href="/styles.css">
 </head>
-<body>
+<body data-page="livetv">
 
   <!-- TOP NAVBAR -->
   <header class="navbar">
@@ -38,15 +38,15 @@
 
     <div class="nav-center">
       <nav class="nav-menu">
-        <a href="/index.html" class="nav-link active"><i class="fa-solid fa-house"></i> Home</a>
-        <a href="/livetv.html" class="nav-link"><i class="fa-solid fa-tv"></i> Live TV</a>
+        <a href="/index.html" class="nav-link"><i class="fa-solid fa-house"></i> Home</a>
+        <a href="/livetv.html" class="nav-link active"><i class="fa-solid fa-tv"></i> Live TV</a>
         <a href="/countries.html" class="nav-link"><i class="fa-solid fa-globe"></i> Countries</a>
         <a href="/mylist.html" class="nav-link"><i class="fa-solid fa-heart"></i> My List</a>
       </nav>
 
       <div class="search-box">
         <i class="fa-solid fa-magnifying-glass search-icon"></i>
-        <input type="text" id="searchInput" class="search-input" placeholder="Search channels, countries, news..." oninput="handleSearch(this.value)">
+        <input type="text" id="searchInput" class="search-input" placeholder="Search live channels..." oninput="handleSearch(this.value)">
       </div>
     </div>
 
@@ -85,88 +85,10 @@
   <!-- MAIN CONTENT CONTAINER -->
   <main class="app-container">
 
-    <!-- HERO SECTION -->
-    <section class="hero-container" id="hero-section">
-      <!-- Featured Hero Channel -->
-      <div class="hero-main-card" id="heroCard">
-        <div class="hero-bg-overlay" id="heroBgOverlay"></div>
-        <div class="hero-gradient-mask"></div>
-        
-        <div class="hero-content">
-          <div class="live-badge">
-            <span class="live-dot"></span> Live Now
-          </div>
-
-          <div class="hero-title-row">
-            <img id="heroLogo" class="hero-channel-logo" src="https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/BBC_World_News_2022.svg/512px-BBC_World_News_2022.svg.png" alt="Featured Channel">
-            <h2 id="heroTitle" class="hero-channel-name">BBC World News</h2>
-          </div>
-
-          <p id="heroDesc" class="hero-description">
-            Trusted News. Global Perspective. Live 24/7 International Coverage and Analysis.
-          </p>
-
-          <div class="hero-tags">
-            <span id="heroTagCat" class="hero-tag">News</span>
-            <span id="heroTagCountry" class="hero-tag">UK</span>
-            <span class="hero-tag">HD 1080p</span>
-          </div>
-
-          <div class="hero-actions">
-            <button class="btn-primary-neon" onclick="playHeroChannel()">
-              <i class="fa-solid fa-play"></i> Watch Live
-            </button>
-            <button class="btn-secondary-glass" onclick="toggleHeroFavorite()">
-              <i class="fa-solid fa-plus" id="heroFavIcon"></i> My List
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Hero Side Card -->
-      <div class="hero-side-card">
-        <div>
-          <div class="side-card-header">
-            <div class="side-card-icon">
-              <i class="fa-solid fa-shield-halved"></i>
-            </div>
-            <div>
-              <h3 class="side-card-title">OmniCast AI</h3>
-              <span class="side-card-subtitle">Hands-Free Live Streaming</span>
-            </div>
-          </div>
-
-          <ul class="side-card-features">
-            <li><i class="fa-solid fa-check"></i> Live TV from 100+ Countries</li>
-            <li><i class="fa-solid fa-check"></i> Hands-Free "Hey Aryan" Voice Control</li>
-            <li><i class="fa-solid fa-check"></i> News, Sports, Movies, Kids & More</li>
-            <li><i class="fa-solid fa-check"></i> Free & Legal Public IPTV Feeds</li>
-            <li><i class="fa-solid fa-check"></i> Installable PWA - All Devices</li>
-          </ul>
-        </div>
-
-        <button class="pwa-btn" style="width: 100%; justify-content: center;" onclick="installPWA()">
-          <i class="fa-solid fa-download"></i> Install App
-        </button>
-      </div>
-    </section>
-
-    <!-- COUNTRIES SECTION -->
-    <section id="countries-section">
-      <div class="section-header">
-        <h3 class="section-title"><i class="fa-solid fa-earth-americas"></i> Countries</h3>
-        <button class="view-all-btn" onclick="filterCountry('ALL')">View All <i class="fa-solid fa-arrow-right"></i></button>
-      </div>
-
-      <div class="countries-scroll" id="countriesContainer">
-        <!-- Rendered dynamically -->
-      </div>
-    </section>
-
     <!-- CATEGORIES SECTION -->
     <section id="categories-section">
       <div class="section-header">
-        <h3 class="section-title"><i class="fa-solid fa-shapes"></i> Categories</h3>
+        <h3 class="section-title"><i class="fa-solid fa-shapes"></i> Browse Categories</h3>
       </div>
 
       <div class="categories-grid" id="categoriesContainer">
@@ -177,7 +99,7 @@
     <!-- LIVE TV CHANNELS SECTION -->
     <section id="channels-section">
       <div class="section-header">
-        <h3 class="section-title" id="channelsSectionTitle"><i class="fa-solid fa-tv"></i> Live TV Channels</h3>
+        <h3 class="section-title" id="channelsSectionTitle"><i class="fa-solid fa-tv"></i> Live TV Stream Directory</h3>
 
         <div class="filter-group">
           <select id="countryFilter" class="filter-select" onchange="filterCountry(this.value)">
@@ -213,7 +135,7 @@
 
   </main>
 
-  <!-- VIDEO PLAYER MODAL / PAGE -->
+  <!-- VIDEO PLAYER MODAL -->
   <div class="player-modal-overlay" id="playerModal">
     <div class="player-modal-container">
       <div class="player-modal-header">
@@ -235,12 +157,10 @@
         </div>
       </div>
 
-      <!-- Video Element Viewport -->
       <div class="video-wrapper">
         <video id="hlsVideoPlayer" controls autoplay playsinline></video>
       </div>
 
-      <!-- Player Body & EPG Timeline -->
       <div class="player-body">
         <div class="player-details-grid">
           <div>
@@ -256,15 +176,12 @@
             <h4 style="font-size: 14px; font-weight: 700; margin-bottom: 12px; color: #E2E8F0;">
               Related Channels
             </h4>
-            <div class="countries-scroll" id="relatedChannelsContainer">
-              <!-- Related channels rendered dynamically -->
-            </div>
+            <div class="countries-scroll" id="relatedChannelsContainer"></div>
           </div>
 
-          <!-- EPG Panel -->
           <div class="now-playing-panel">
             <div class="epg-title"><i class="fa-solid fa-tower-broadcast"></i> Now Playing</div>
-            <div id="epgNowTitle" class="epg-program-name">Global News Today</div>
+            <div id="epgNowTitle" class="epg-program-name">Global Live Broadcast</div>
             <div class="progress-bar-bg">
               <div class="progress-bar-fill"></div>
             </div>
@@ -272,12 +189,10 @@
               <span>10:00 AM</span>
               <span>11:00 AM</span>
             </div>
-
             <hr style="border-color: rgba(255,255,255,0.1); margin: 16px 0;">
-
             <div class="epg-title" style="color: #94A3B8;">Up Next</div>
             <div id="epgNextTitle" style="font-size: 14px; font-weight: 600; color: #E2E8F0;">
-              World Business Report
+              Upcoming Special
             </div>
           </div>
         </div>
@@ -316,11 +231,11 @@
 
   <!-- MOBILE BOTTOM NAVIGATION -->
   <nav class="bottom-nav">
-    <a href="/index.html" class="bottom-nav-item active">
+    <a href="/index.html" class="bottom-nav-item">
       <i class="fa-solid fa-house"></i>
       <span>Home</span>
     </a>
-    <a href="/livetv.html" class="bottom-nav-item">
+    <a href="/livetv.html" class="bottom-nav-item active">
       <i class="fa-solid fa-tv"></i>
       <span>Live</span>
     </a>
@@ -341,22 +256,17 @@
   <!-- TOAST CONTAINER -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <!-- ARYAN AI HANDS-FREE VOICE ASSISTANT SIRI WIDGET OVERLAY -->
+  <!-- ARYAN AI WIDGET OVERLAY -->
   <div class="aryan-voice-widget" id="aryanVoiceWidget">
-    <!-- Voice Transcript Card -->
     <div class="aryan-transcript-box" id="aryanTranscriptBox">
       <div class="aryan-transcript-content aryan">
         <span class="transcript-icon">✨</span>
         <span class="transcript-text">Aryan AI Ready. Say "Hey Aryan" to control!</span>
       </div>
     </div>
-
-    <!-- Wake Status Badge -->
     <div class="aryan-status-badge listening" id="aryanStatusBadge" onclick="openVoiceHelpModal()">
       Listening for "Hey Aryan"...
     </div>
-
-    <!-- Glowing 3D Siri Orb -->
     <div class="aryan-orb-wrapper" onclick="handleOrbClick()" title="Aryan AI Voice Assistant (Say 'Hey Aryan')">
       <div class="aryan-orb-ring"></div>
       <div class="aryan-ai-orb" id="aryanAiOrb">
@@ -390,27 +300,24 @@
           <div style="color: var(--text-primary); font-weight: 800; margin-bottom: 6px;">📺 Channels</div>
           • "Hey Aryan, open BBC News"<br>
           • "Hey Aryan, play Sky Sports"<br>
-          • "Hey Aryan, play channel 3"<br>
-          • "Hey Aryan, next channel"
+          • "Hey Aryan, play channel 3"
         </div>
         <div style="background: var(--bg-main); padding: 12px; border-radius: 8px;">
           <div style="color: var(--text-primary); font-weight: 800; margin-bottom: 6px;">⏯️ Playback</div>
           • "Hey Aryan, pause"<br>
           • "Hey Aryan, resume"<br>
-          • "Hey Aryan, volume 80%"<br>
-          • "Hey Aryan, fullscreen"
+          • "Hey Aryan, volume 80%"
         </div>
         <div style="background: var(--bg-main); padding: 12px; border-radius: 8px;">
-          <div style="color: var(--text-primary); font-weight: 800; margin-bottom: 6px;">🔍 Search & Filters</div>
-          • "Hey Aryan, search news"<br>
-          • "Hey Aryan, show sports"<br>
+          <div style="color: var(--text-primary); font-weight: 800; margin-bottom: 6px;">🔍 Navigation</div>
+          • "Hey Aryan, go home"<br>
+          • "Hey Aryan, show countries"<br>
           • "Hey Aryan, show my list"
         </div>
         <div style="background: var(--bg-main); padding: 12px; border-radius: 8px;">
           <div style="color: var(--text-primary); font-weight: 800; margin-bottom: 6px;">🤖 Free AI Q&A</div>
           • "Hey Aryan, what's on live?"<br>
-          • "Hey Aryan, tell me a joke"<br>
-          • "Hey Aryan, what is IPTV?"
+          • "Hey Aryan, tell me a joke"
         </div>
       </div>
     </div>
