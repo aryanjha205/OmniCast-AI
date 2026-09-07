@@ -188,12 +188,50 @@ def sync_external_apis():
     }
 
 @app.get("/api/external/search")
-def search_external_apis(limit: int = 30):
-    live_channels = fetch_from_iptv_org_api(limit=limit)
+def search_external_apis(
+    q: Optional[str] = Query(None, description="Search term for external channel name or country"),
+    limit: int = Query(30, ge=1, le=200)
+):
+    live_channels = fetch_from_iptv_org_api(limit=limit * 2)
+    if q and q.strip():
+        query_str = q.strip().lower()
+        live_channels = [
+            c for c in live_channels 
+            if query_str in c.get("name", "").lower() 
+            or query_str in c.get("country", "").lower() 
+            or query_str in c.get("category", "").lower()
+        ]
+    results = live_channels[:limit]
     return {
-        "provider": "IPTV-Org API",
-        "count": len(live_channels),
-        "results": live_channels
+        "provider": "IPTV-Org Live TV Index & Samsung/Pluto Feeds",
+        "query": q,
+        "count": len(results),
+        "results": results
+    }
+
+@app.get("/api/external/providers")
+def get_external_providers():
+    return {
+        "providers": [
+            {
+                "name": "IPTV-Org Master Index",
+                "description": "Global crowdsourced database of public IPTV streams from 100+ countries",
+                "type": "M3U8 / HLS",
+                "status": "Active"
+            },
+            {
+                "name": "Samsung TV Plus Public Feeds",
+                "description": "Curated news, sports, entertainment, and documentary channels",
+                "type": "HLS Stream",
+                "status": "Active"
+            },
+            {
+                "name": "Pluto TV & Rakuten FAST Channels",
+                "description": "Free ad-supported television feeds with 24/7 linear playback",
+                "type": "HLS Stream",
+                "status": "Active"
+            }
+        ]
     }
 
 @app.post("/api/playlists/import")

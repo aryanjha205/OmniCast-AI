@@ -24,7 +24,7 @@ IPTV_CATEGORY_PLAYLISTS = {
 RELIABLE_CURATED_STREAMS = [
     {
         "name": "France 24 English HD",
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d7/France_24_logo.svg/512px-France_24_logo.svg.png",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/d/d7/France_24_logo.svg",
         "stream_url": "https://static.france24.com/live/F24_EN_LO_HLS/live_tv.m3u8",
         "stream_type": "hls",
         "country": "France",
@@ -39,7 +39,7 @@ RELIABLE_CURATED_STREAMS = [
     },
     {
         "name": "Deutsche Welle EN HD",
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/7/75/Deutsche_Welle_symbol_2012.svg/512px-Deutsche_Welle_symbol_2012.svg.png",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/7/75/Deutsche_Welle_symbol_2012.svg",
         "stream_url": "https://dwamdstream102.akamaized.net/hls/live/2015525/dwstream102/index.m3u8",
         "stream_type": "hls",
         "country": "Germany",
@@ -54,7 +54,7 @@ RELIABLE_CURATED_STREAMS = [
     },
     {
         "name": "Red Bull TV HD",
-        "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/e/e8/Red_Bull_TV_logo.svg/512px-Red_Bull_TV_logo.svg.png",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/f/f5/Red_Bull_TV_logo.svg",
         "stream_url": "https://rbmn-live.akamaized.net/hls/live/591070/GEO_DASH/master.m3u8",
         "stream_type": "hls",
         "country": "Austria",
@@ -84,7 +84,7 @@ RELIABLE_CURATED_STREAMS = [
     },
     {
         "name": "Euronews World HD",
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/0/09/Euronews_2016_logo.svg/512px-Euronews_2016_logo.svg.png",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/0/09/Euronews_2016_logo.svg",
         "stream_url": "https://euronews-euronews-live-1-eu.rakuten.wurl.tv/playlist.m3u8",
         "stream_type": "hls",
         "country": "France",
@@ -99,7 +99,7 @@ RELIABLE_CURATED_STREAMS = [
     },
     {
         "name": "Al Jazeera English",
-        "logo": "https://upload.wikimedia.org/wikipedia/en/thumb/7/77/Al_Jazeera_English_logo.svg/512px-Al_Jazeera_English_logo.svg.png",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/7/77/Al_Jazeera_English_logo.svg",
         "stream_url": "https://live-hls-web-aje.getaj.net/AJE/01.m3u8",
         "stream_type": "hls",
         "country": "Qatar",

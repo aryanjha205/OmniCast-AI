@@ -55,6 +55,10 @@
         <i class="fa-solid fa-microphone"></i>
       </button>
 
+      <button class="icon-btn" onclick="openApiExplorerModal()" title="Explore Third-Party Live TV APIs">
+        <i class="fa-solid fa-satellite-dish" style="color: var(--parrot-neon);"></i>
+      </button>
+
       <button class="icon-btn" onclick="syncThirdPartyAPIs()" title="Sync Third-Party IPTV APIs">
         <i class="fa-solid fa-cloud-arrow-down"></i>
       </button>
@@ -73,7 +77,7 @@
       </button>
 
       <button class="icon-btn" onclick="toggleTheme()" title="Toggle Light/Dark Theme">
-        <i class="fa-solid fa-moon" id="themeIcon"></i>
+        <i class="fa-solid fa-sun" id="themeIcon"></i>
       </button>
 
       <button id="pwaInstallBtn" class="pwa-btn" onclick="installPWA()" style="display: none;">
@@ -318,6 +322,34 @@
           • "Hey Aryan, what's on live?"<br>
           • "Hey Aryan, tell me a joke"
         </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- THIRD-PARTY LIVE TV API EXPLORER MODAL -->
+  <div class="modal-drawer api-explorer-modal" id="externalApiModal">
+    <div class="modal-card">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+        <div>
+          <h3 style="font-size: 20px; font-weight: 800; display: flex; align-items: center; gap: 10px;">
+            <i class="fa-solid fa-satellite-dish" style="color: var(--parrot-neon);"></i>
+            Third-Party Live TV API Explorer
+          </h3>
+          <span class="api-provider-badge" style="margin-top: 4px;">
+            <span class="live-dot" style="width: 6px; height: 6px;"></span>
+            Connected: IPTV-Org API & Public FAST Streams
+          </span>
+        </div>
+        <button class="icon-btn" onclick="closeApiExplorerModal()"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="search-box" style="margin-bottom: 20px;">
+        <i class="fa-solid fa-magnifying-glass search-icon"></i>
+        <input type="text" id="apiSearchInput" class="search-input" placeholder="Search live channels, sports, news from Third-Party APIs..." oninput="handleApiSearchInput(this.value)">
+      </div>
+
+      <div class="api-results-grid" id="apiResultsContainer">
+        <!-- Rendered dynamically -->
       </div>
     </div>
   </div>

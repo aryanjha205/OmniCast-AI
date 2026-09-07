@@ -5,7 +5,7 @@ INITIAL_CHANNELS = [
     # --- HERO / FEATURED NEWS ---
     {
         "name": "BBC World News",
-        "logo": "https://upload.wikimedia.org/wikipedia/commons/thumb/6/62/BBC_World_News_2022.svg/512px-BBC_World_News_2022.svg.png",
+        "logo": "https://upload.wikimedia.org/wikipedia/commons/6/62/BBC_World_News_2022.svg",
         "stream_url": "https://d2e1asnsl7br7b.cloudfront.net/token=bg_ebd/04f137e651515f40398f5a2b/c/bbc_world_news/master.m3u8",
         "country": "United Kingdom",
         "country_code": "GB",
