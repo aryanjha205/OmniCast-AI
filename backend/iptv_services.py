@@ -116,9 +116,10 @@ RELIABLE_CURATED_STREAMS = [
 
 MASTER_INDEX_URL = "https://iptv-org.github.io/iptv/index.m3u"
 
-def fetch_from_iptv_org_api() -> List[Dict]:
+def fetch_from_iptv_org_api(limit: int = None) -> List[Dict]:
     """
-    Fetches ALL active streams from master index.m3u and category playlists without limits
+    Fetches active streams from master index.m3u and category playlists.
+    If limit is specified, returns up to limit channels.
     """
     fetched_channels = []
     seen_urls = set()
@@ -131,6 +132,8 @@ def fetch_from_iptv_org_api() -> List[Dict]:
 
     # Fetch working channels across each category
     for cat_name, playlist_url in IPTV_CATEGORY_PLAYLISTS.items():
+        if limit and len(fetched_channels) >= limit:
+            break
         try:
             logger.info(f"Fetching IPTV playlist for {cat_name}: {playlist_url}")
             channels = fetch_and_parse_m3u(playlist_url)
@@ -142,24 +145,29 @@ def fetch_from_iptv_org_api() -> List[Dict]:
                     c["is_hd"] = True
                     c["is_live"] = True
                     fetched_channels.append(c)
+                    if limit and len(fetched_channels) >= limit:
+                        break
         except Exception as e:
             logger.warning(f"Could not load playlist for {cat_name}: {e}")
 
-    # Parse ALL channels from Master index.m3u
-    try:
-        logger.info(f"Parsing ALL channels from IPTV-Org Master Index: {MASTER_INDEX_URL}")
-        master_channels = fetch_and_parse_m3u(MASTER_INDEX_URL)
-        for c in master_channels:
-            stream_url = c.get("stream_url")
-            if stream_url and (stream_url.startswith("http://") or stream_url.startswith("https://")) and stream_url not in seen_urls:
-                seen_urls.add(stream_url)
-                c["is_hd"] = True
-                c["is_live"] = True
-                fetched_channels.append(c)
-    except Exception as e:
-        logger.warning(f"Could not load master index: {e}")
+    if not limit or len(fetched_channels) < limit:
+        # Parse channels from Master index.m3u
+        try:
+            logger.info(f"Parsing channels from IPTV-Org Master Index: {MASTER_INDEX_URL}")
+            master_channels = fetch_and_parse_m3u(MASTER_INDEX_URL)
+            for c in master_channels:
+                stream_url = c.get("stream_url")
+                if stream_url and (stream_url.startswith("http://") or stream_url.startswith("https://")) and stream_url not in seen_urls:
+                    seen_urls.add(stream_url)
+                    c["is_hd"] = True
+                    c["is_live"] = True
+                    fetched_channels.append(c)
+                    if limit and len(fetched_channels) >= limit:
+                        break
+        except Exception as e:
+            logger.warning(f"Could not load master index: {e}")
 
-    return fetched_channels
+    return fetched_channels[:limit] if limit else fetched_channels
 
 def sync_third_party_apis() -> int:
     """
